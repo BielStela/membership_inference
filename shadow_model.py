@@ -1,3 +1,5 @@
+from typing import List, Tuple, Dict
+
 import numpy as np
 from sklearn.model_selection import train_test_split
 
@@ -22,3 +24,11 @@ class ShadowModels:
         self.n_models = n_models
         self.data = data
         self.target_classes = target_classes
+        self.splits = self.split_data(self.data, self.n_models)
+
+    @staticmethod
+    def split_data(data, n_splits, shuffle=False) ->List[np.ndarray]:
+        if shuffle:    
+            np.random.shuffle(data)  # shufle data just in case
+        splited = np.vsplit(data, n_splits)
+        return splited
