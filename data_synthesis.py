@@ -77,7 +77,7 @@ def synthesize(target_model, fixed_class: int,  k_max: int):
     """
 
     if not hasattr(target_model, 'predict_proba'):
-        raise ValueError('tarjet_model must have predict_proba() method')
+        raise AttributeError('tarjet_model must have predict_proba() method')
 
     n_features = target_model.n_features_
     x = features_generator(n_features, types='float') # random record
