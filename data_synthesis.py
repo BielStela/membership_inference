@@ -17,15 +17,15 @@ def features_generator(n_features: int, types: str,
         number of features or length of the vector
 
     types: str
-        type of the features. It only accepts uniform types.
+        type of the features. All the features must will have the same type.
 
     rang: tuple(int, int)
-        range of the random uniform population from 
+        range of the random uniform population from
         where to drawn samples
 
     Returns
     -------
-    x: np.ndarray
+    np.ndarray
         features vector
     """
     # D-fence params
@@ -100,7 +100,7 @@ def synthesize(target_model, fixed_class: int,  k_max: int):
 
     Returns
     -------
-    x: np.ndarray
+    np.ndarray
         synthetic feature vector
 
     False
