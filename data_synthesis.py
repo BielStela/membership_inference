@@ -102,10 +102,14 @@ def synthesize(target_model, fixed_class: int,  k_max: int):
     -------
     x: np.ndarray
         synthetic feature vector
+
+    False
+        If failed to synthesize vector.
+        This may be becaus number of iters exceded
     """
 
     if not hasattr(target_model, 'predict_proba'):
-        raise AttributeError('tarjet_model must have predict_proba() method')
+        raise AttributeError('target_model must have predict_proba() method')
 
     n_features = target_model.n_features_
     x = features_generator(n_features, types='float')  # random record
@@ -135,21 +139,21 @@ def synthesize(target_model, fixed_class: int,  k_max: int):
 
         x = feature_randomizer(x_new, k, types='float', rang=(0, 1))
 
-    return "Failed to synthesize"
+    return False
 
 
-def synthesize_batch(tarjet_model, fixed_class, n_records):
+def synthesize_batch(target_model, fixed_class, n_records, k_max):
     """
     Synthesize a batch of records
     """
-    n_features = tarjet_model.n_features_
+    n_features = target_model.n_features_
     x_synth = np.zeros((n_records, n_features))
 
-    for i in tqdm_notebook(range(x_synth.shape[0])):
-        x_vec = synthesize(tarjet_model, fixed_class, k_max=3)
-        if isinstance(x_vec, str):
-            x_synth[i, :] = np.nan
-        else:
-            x_synth[i, :] = x_vec
+    for i in tqdm_notebook(range(n_records)):
+        while True:  # repeat until synth finds record
+            x_vec = synthesize(target_model, fixed_class, k_max=k_max)
+            if isinstance(x_vec, np.ndarray):
+                break
+        x_synth[i, :] = x_vec
 
     return x_synth
