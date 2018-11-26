@@ -6,6 +6,9 @@ from sklearn.model_selection import train_test_split, StratifiedShuffleSplit
 from sklearn.base import clone
 import pandas as pd
 
+import warnings
+warnings.filterwarnings("ignore")
+
 
 class ShadowModels:
     """
@@ -51,7 +54,10 @@ class ShadowModels:
         """
 
         self.n_models = n_models
-        self.data = data
+        if isinstance(data, pd.DataFrame):
+            self.data = data.values
+        else:
+            self.data = data
         self.target_classes = target_classes
         self.splits = self._split_data(self.data, self.n_models)
         self.learner = learner
