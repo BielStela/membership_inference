@@ -28,6 +28,7 @@ class AttackModels:
             The learner its cloned into n models, one for each target class,
             and each model is trained on a class subset of the shadow data.
 
+
         Returns
         -------
         AttackModels class instance
@@ -45,6 +46,7 @@ class AttackModels:
         Trains `attack_models` with `shadow_data`. Each model is trained with
         with a subset of the same class of `shadow_data`.
 
+
         Parameters
         ----------
         shadow_data: np.ndarray
@@ -57,6 +59,7 @@ class AttackModels:
             be used as grouper to split the data for each attack model.
             The rest of the columns are the class probability vector
             predicted by the shadow model.
+
 
         Returns
         -------
@@ -77,6 +80,16 @@ class AttackModels:
 
     def predict(self, X, y, batch=False):
         """
+        Predicts if `X` is real member of `y` in the attacked
+        private training set.
+
+        Parameters
+        ----------
+        X: np.ndarray
+            Probability vector result from target model
+
+        y: int, np.ndarray
+            estimated class of the data record used to get `X`
         """
         if not self._fited:
             print('Must run .fit() first!')
