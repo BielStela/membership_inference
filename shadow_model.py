@@ -60,7 +60,8 @@ class ShadowModels:
         # train models
         self.results = self.train_predict_shadows()
 
-        def _split_data(data, n_splits) -> List[np.ndarray]:
+    @staticmethod
+    def _split_data(data, n_splits) -> List[np.ndarray]:
         """
         Split manually into n datasets maintaining class proportions
 
@@ -138,6 +139,11 @@ class ShadowModels:
             # concat in single array
             model_results = np.vstack((res_in, res_out))
             results.append(model_results)
-        
+
         results = np.vstack(results)
         return results
+
+    def __repr__(self):
+        rep = (f"Shadow models: {self.n_models}, {self.learner.__class__}\n"
+               f"lengths of dtaa splits : {[len(s) for s in self.splits]}")
+        return rep
