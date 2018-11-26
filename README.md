@@ -55,7 +55,6 @@ y = 0
 # False otherwise
 attacker.predict(X, y)
 ```
-Will 
 
 ## Warning
 
