@@ -1,11 +1,62 @@
 # Membership Inference Attacks
-Python package to create adversarial agents for membership inference attacks againts machine learning models.
+Python package to create adversarial agents for membership inference attacks against machine learning models.
 
-Implementation of the work done by Shokri _et al_: [paper](https://www.cs.cornell.edu/~shmat/shmat_oak17.pdf)
+Implementation of the work done by Shokri _et al_ ([paper](https://www.cs.cornell.edu/~shmat/shmat_oak17.pdf))
 
-## TO DO
-* Basic package outline
-* Shadow Model and Attack Model
-* Shadow dataset generator using the data synthesis algorithm proposeb by Shokri _et al_
-* Dummy example with Iris dataset
-* Expand functionality and generalization of the package
+# Examples
+Find some examples in `notebooks/`
+
+The main classes and functions are:
+
+### Data Synthetiser
+
+To synthesize data only using a black-box like model `target_model` and predictions using the algorithm proposed by Shokri _et al_
+
+```python 
+from mblearn import synthetize
+
+x = synthesize(target_model, fixed_class, k_max)
+```
+
+### Shadow models
+Train $n$ shadow models on synthetic data with a given learner. The learner must be a scikit-learn estimator with the `predict_proba` method.
+
+
+```python
+from mblearn import ShadowModels
+
+shadows = ShadowModels(n_models, data, target_classes, learner)
+
+shadow_data = shadows.results
+```
+
+### Attacker models
+
+Using the data generated with the shadow models, trains a attack models
+on each label of the shadow dataset.
+
+```python
+from mblearn import AttackerModels
+
+attacker = AttackModels(target_classes, attack_learner)
+
+# train the attacker with the shadow data
+attacker.fit(shadow_data)
+
+# query the target model and get the predicted class prob vector
+X = target_model.predict_proba(test_data)
+
+# especulate about the class this test_data belongs to
+y = 0
+
+# get the prediction:
+# True if `test_data` is classified as a member of
+# the private model training set for the given class
+# False otherwise
+attacker.predict(X, y)
+```
+Will 
+
+## Warning
+
+The maturity of the package is far from alpha. This is just a prove of concept and the whole interface and inner wheels may change constantly in the next few months.
