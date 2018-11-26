@@ -100,14 +100,14 @@ class AttackModels:
             model = self.attack_models[model_class]
             prob_vec = model.predict_proba(X)
 
-            if y == np.argmax(prob_vec):
-                print(y)
+            if y == np.argmax(prob_vec) and np.argmax(prob_vec) == 1:
+                print(prob_vec)
                 print('YES! Looks like this record of class'
                       f' {y} is a real member of the training'
                       ' private dataset!')
 
             else:
-                print(y)
+                print(prob_vec)
                 print('No luck this time :(')
 
         elif batch:
