@@ -1,5 +1,5 @@
 # Membership Inference Attacks
-Python package to create adversarial agents for membership inference attacks against machine learning models.
+Python package to create adversarial agents for membership inference attacks against machine learning models using Scikit-learn learners.
 
 Implementation of the work done by Shokri _et al_ ([paper](https://www.cs.cornell.edu/~shmat/shmat_oak17.pdf))
 
