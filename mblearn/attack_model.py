@@ -64,6 +64,12 @@ class AttackModels:
         Returns
         -------
         None
+
+        TODO
+        ----
+            Tweak model params with something like **learner_kwargs
+            cross-validate
+            grid search?
         """
         # split data into subsets, n == target_classes
         data = shadow_data[:, :-2]
@@ -96,19 +102,24 @@ class AttackModels:
             return
 
         if not batch:
-            model_class = y
-            model = self.attack_models[model_class]
+            model_cls = y
+            model = self.attack_models[model_cls]
             prob_vec = model.predict_proba(X)
 
             if y == np.argmax(prob_vec) and np.argmax(prob_vec) == 1:
-                print(prob_vec)
-                print('YES! Looks like this record of class'
-                      f' {y} is a real member of the training'
-                      ' private dataset!')
+                return 1
 
             else:
-                print(prob_vec)
-                print('No luck this time :(')
+                return 0
 
         elif batch:
-            raise NotImplementedError
+            
+            model_classes = np.unique(y)
+            res = []
+            for model_cls in model_classes:
+                X_cls = X[y == model_cls]
+                model = self.attack_models[model_cls]
+                attack_res = model.predict_proba(X_cls)
+                res.append(attack_res)
+
+            return np.concatenate(res)

@@ -151,5 +151,5 @@ class ShadowModels:
 
     def __repr__(self):
         rep = (f"Shadow models: {self.n_models}, {self.learner.__class__}\n"
-               f"lengths of dtaa splits : {[len(s) for s in self.splits]}")
+               f"lengths of data splits : {[len(s) for s in self.splits]}")
         return rep
