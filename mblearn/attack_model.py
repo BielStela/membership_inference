@@ -113,7 +113,7 @@ class AttackModels:
                 return 0
 
         elif batch:
-            
+
             model_classes = np.unique(y)
             res = []
             for model_cls in model_classes:
