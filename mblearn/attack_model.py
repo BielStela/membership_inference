@@ -98,7 +98,7 @@ class AttackModels:
             estimated class of the data record used to get `X`
         """
         if not self._fited:
-            print('Must run .fit() first!')
+            print('Must run `fit` method first')
             return
 
         if not batch:
