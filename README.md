@@ -58,4 +58,4 @@ attacker.predict(X, y)
 
 ## Warning
 
-The maturity of the package is far from alpha. This is just a prove of concept and the whole interface and inner wheels may change constantly in the next few months.
+The maturity of the package is far from alpha. This is just a proof of concept and all the interface and inner wheels will change in the next few months.

@@ -120,7 +120,7 @@ def synthesize(target_model, fixed_class: int,  k_max: int):
     k_min = 1
     max_iter = 1000
     conf_min = 0.8  # min prob cutoff to consider a record member of the class
-    rej_max = 10  # max number of consecutive rejections
+    rej_max = 5  # max number of consecutive rejections
     for _ in range(max_iter):
         y = target_model.predict_proba(x)  # query target model
         y_c = y.flat[fixed_class]
