@@ -5,7 +5,7 @@ import numpy as np
 from tqdm import tqdm_notebook
 
 
-def features_generator(n_features: int, types: str,
+def features_generator(n_features: int, dtype: str,
                        rang: tuple = (0, 1)) -> np.ndarray:
     """
     Creates a n features vector with uniform features
@@ -16,7 +16,7 @@ def features_generator(n_features: int, types: str,
     n_features: int
         number of features or length of the vector
 
-    types: str
+    dtype: str
         type of the features. All the features must will have the same type.
 
     rang: tuple(int, int)
@@ -29,21 +29,21 @@ def features_generator(n_features: int, types: str,
         features vector
     """
     # D-fence params
-    if types not in ('binary', 'int', 'float'):
+    if dtype not in ('binary', 'int', 'float'):
         raise ValueError(
-            "Parameter `types` must be 'binary', 'int' or 'float'")
+            "Parameter `dtype` must be 'binary', 'int' or 'float'")
 
-    if types == 'binary':
+    if dtype == 'binary':
         x = np.random.randint(0, 2, n_features)
-    if types == 'int':
+    if dtype == 'int':
         x = np.random.randint(rang[0], rang[1], n_features)
-    if types == 'float':
+    if dtype == 'float':
         x = np.random.uniform(rang[0], rang[1], n_features)
     return x.reshape((1, -1))
 
 
 def feature_randomizer(x: np.ndarray, k: int,
-                       types: str, rang: tuple) -> np.ndarray:
+                       dtype: str, rang: tuple) -> np.ndarray:
     """
     Randomizes k features from feature vector x
 
@@ -55,8 +55,8 @@ def feature_randomizer(x: np.ndarray, k: int,
     k: int
         number of features to modify
 
-    types: str
-        type of the features. It only accepts uniform types.
+    dtype: str
+        type of the features. It only accepts uniform dtype.
 
     rang: tuple(int, int)
         range of the random uniform population from 
@@ -70,7 +70,7 @@ def feature_randomizer(x: np.ndarray, k: int,
     """
     idx_to_change = np.random.randint(0, x.shape[1], size=k)
 
-    new_feats = features_generator(k, types, rang)
+    new_feats = features_generator(k, dtype, rang)
 
     x[0, idx_to_change] = new_feats
     return x
@@ -112,7 +112,7 @@ def synthesize(target_model, fixed_class: int,  k_max: int):
         raise AttributeError('target_model must have predict_proba() method')
 
     n_features = target_model.n_features_
-    x = features_generator(n_features, types='float')  # random record
+    x = features_generator(n_features, dtype='float')  # random record
 
     y_c_current = 0  # target model’s probability of fixed class
     n_rejects = 0  # consecutives rejections counter
@@ -137,7 +137,7 @@ def synthesize(target_model, fixed_class: int,  k_max: int):
                 k = max(k_min, int(np.ceil(k/2)))
                 n_rejects = 0
 
-        x = feature_randomizer(x_new, k, types='float', rang=(0, 1))
+        x = feature_randomizer(x_new, k, dtype='float', rang=(0, 1))
 
     return False
 
