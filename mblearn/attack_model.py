@@ -35,13 +35,25 @@ class AttackModels:
         """
         self.target_classes = target_classes
         self.attack_learner = attack_learner
-
+        # 1 model for each class
         self.attack_models = [clone(self.attack_learner)
                               for _ in range(target_classes)]
 
         self._fited = False
 
-    def fit(self, shadow_data) -> None:
+    @staticmethod
+    def _update_learner_params(learner, learner_params: Dict) -> None:
+        # safety check if dict is well formed
+        for k in learner_params.keys():
+            if not hasattr(learner, k):
+                raise AttributeError(f'Learner parameter {k} is not'
+                                     f' an attribute of {learner.__class__}')
+        
+        # update learner params
+        learner.__dict__.update(learner_params)
+        
+
+    def fit(self, shadow_data, learner_kwargs: dict) -> None:
         """
         Trains `attack_models` with `shadow_data`. Each model is trained with
         with a subset of the same class of `shadow_data`.
@@ -72,19 +84,21 @@ class AttackModels:
             grid search?
         """
         # split data into subsets, n == target_classes
-        data = shadow_data[:, :-2]
         membership_label = shadow_data[:, -1]
         class_label = shadow_data[:, -2]
+        data = shadow_data[:, :-2]
         for i, model in enumerate(self.attack_models):
             X = data[class_label == i]
             y = membership_label[class_label == i]
 
+            #update model params
+            self._update_learner_params(model, learner_kwargs)
             # train model
             model.fit(X, y)
 
         self._fited = True
 
-    def predict(self, X, y, batch=False):
+    def predict(self, X, y, batch=False) -> np.ndarray:
         """
         Predicts if `X` is real member of `y` in the attacked
         private training set.

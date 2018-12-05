@@ -36,7 +36,7 @@ Using the data generated with the shadow models, trains a attack models
 on each label of the shadow dataset.
 
 ```python
-from mblearn import AttackerModels
+from mblearn import AttackModels
 
 attacker = AttackModels(target_classes, attack_learner)
 
@@ -55,6 +55,9 @@ y = 0
 # False otherwise
 attacker.predict(X, y)
 ```
+## Bibliography
+ R. Shokri, M. Stronati, and V. Shmatikov. Membership inference attacks against machine learning models. _Security and Privacy (SP), 2017 IEEE Symposium_
+, IEEE, 2017.
 
 ## Warning
 
