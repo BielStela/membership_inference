@@ -59,6 +59,10 @@ attacker.predict(X, y)
  R. Shokri, M. Stronati, and V. Shmatikov. Membership inference attacks against machine learning models. _Security and Privacy (SP), 2017 IEEE Symposium_
 , IEEE, 2017.
 
+Y. Long, V. Bindschaedler, L Wang, D. Bu, _et al_. Understanding Membership Inferences on Well-Generalized Learning Models. _arXiv preprint [arXiv:1802.04889](https://arxiv.org/pdf/1802.04889.pdf)_, 2018.
+
+S. Truex, L. Liu, M. E. Gursoy, L. Yu, W. Wei. Towards Demystifying Membership Inference Attacks. _arXiv preprint [arXiv:1807.09173](https://arxiv.org/pdf/1807.09173.pdf)_, 2018.
+
 ## Warning
 
 The maturity of the package is far from alpha. This is just a proof of concept and all the interface and inner wheels will change in the next few months.
