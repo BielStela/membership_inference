@@ -29,11 +29,11 @@ def features_generator(n_features: int, dtype: str,
         features vector
     """
     # D-fence params
-    if dtype not in ('binary', 'int', 'float'):
+    if dtype not in ('bool', 'int', 'float'):
         raise ValueError(
-            "Parameter `dtype` must be 'binary', 'int' or 'float'")
+            "Parameter `dtype` must be 'bool', 'int' or 'float'")
 
-    if dtype == 'binary':
+    if dtype == 'bool':
         x = np.random.randint(0, 2, n_features)
     if dtype == 'int':
         x = np.random.randint(rang[0], rang[1], n_features)
@@ -76,28 +76,32 @@ def feature_randomizer(x: np.ndarray, k: int,
     return x
 
 
-def synthesize(target_model, fixed_class: int,  k_max: int):
+def synthesize(target_model, fixed_cls: int,
+    k_max: int, dtype: str, n_features: int=None) -> np.ndarray:
     """
     Generates synthetic records that are classified
     by the target model with high confidence.
 
     Parameters
     ----------
-    class_: int
-        fixed class which attacker wants to drawn samples from
-
-    n_features: int
-        number of features per input vector
-
     target_model: estimator
         Estimator that returns a class probability vector
         from an input features vector. Implemented for
         sklearn.base.BaseEstimator with `predict_proba()`
         method.
 
+    fixed_cls: int
+        target model class to create data point from
+
     k_max: int
         max "radius" of feature perturbation
+    
+    dtype: str
+        dtype of the features (float, int, bool)
 
+    n_features: int
+        number of features per input vector
+    
     Returns
     -------
     np.ndarray
@@ -111,8 +115,12 @@ def synthesize(target_model, fixed_class: int,  k_max: int):
     if not hasattr(target_model, 'predict_proba'):
         raise AttributeError('target_model must have predict_proba() method')
 
-    n_features = target_model.n_features_
-    x = features_generator(n_features, dtype='float')  # random record
+    if not hasattr(target_model, "n_features_") and n_features is None:
+        raise ValueError("please specify the number of features in `n_features`")
+    else:
+        n_features = target_model.n_features_
+
+    x = features_generator(n_features, dtype=dtype)  # random record
 
     y_c_current = 0  # target model’s probability of fixed class
     n_rejects = 0  # consecutives rejections counter
@@ -123,9 +131,9 @@ def synthesize(target_model, fixed_class: int,  k_max: int):
     rej_max = 5  # max number of consecutive rejections
     for _ in range(max_iter):
         y = target_model.predict_proba(x)  # query target model
-        y_c = y.flat[fixed_class]
+        y_c = y.flat[fixed_cls]
         if y_c >= y_c_current:
-            if (y_c > conf_min) and (fixed_class == np.argmax(y)):
+            if (y_c > conf_min) and (fixed_cls == np.argmax(y)):
                 return x
             # reset vars
             x_new = x
@@ -137,12 +145,12 @@ def synthesize(target_model, fixed_class: int,  k_max: int):
                 k = max(k_min, int(np.ceil(k/2)))
                 n_rejects = 0
 
-        x = feature_randomizer(x_new, k, dtype='float', rang=(0, 1))
+        x = feature_randomizer(x_new, k, dtype=dtype, rang=(0, 1))
 
     return False
 
 
-def synthesize_batch(target_model, fixed_class, n_records, k_max):
+def synthesize_batch(target_model, fixed_cls, n_records, k_max):
     """
     Synthesize a batch of records
     """
@@ -151,7 +159,7 @@ def synthesize_batch(target_model, fixed_class, n_records, k_max):
 
     for i in tqdm_notebook(range(n_records)):
         while True:  # repeat until synth finds record
-            x_vec = synthesize(target_model, fixed_class, k_max=k_max)
+            x_vec = synthesize(target_model, fixed_cls, k_max, dtype)
             if isinstance(x_vec, np.ndarray):
                 break
         x_synth[i, :] = x_vec

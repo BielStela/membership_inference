@@ -48,10 +48,9 @@ class AttackModels:
             if not hasattr(learner, k):
                 raise AttributeError(f'Learner parameter {k} is not'
                                      f' an attribute of {learner.__class__}')
-        
+
         # update learner params
         learner.__dict__.update(**learner_params)
-        
 
     def fit(self, shadow_data, **learner_kwargs) -> None:
         """
@@ -91,7 +90,7 @@ class AttackModels:
             X = data[class_label == i]
             y = membership_label[class_label == i]
 
-            #update model params
+            # update model params
             self._update_learner_params(model, **learner_kwargs)
             # train model
             model.fit(X, y)
