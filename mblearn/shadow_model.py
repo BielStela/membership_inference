@@ -1,10 +1,15 @@
 from typing import List, Tuple, Dict
+from copy import copy
 
 from tqdm import tqdm_notebook
+
 import numpy as np
-from sklearn.model_selection import train_test_split, StratifiedShuffleSplit
-from sklearn.base import clone
 import pandas as pd
+
+from sklearn.model_selection import train_test_split, StratifiedShuffleSplit
+from sklearn.base import clone, BaseEstimator
+
+import tensorflow as tf
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -14,16 +19,11 @@ class ShadowModels:
     """
     Creates a swarm of shadow models and trains them with a split
     of the synthetic data.
-
-    TODO:
-        - Run prediction on both training and test splited data
-        - Label the resulting prediction vector with "in"/"out"
-          if it was train or test
-        - drop mic
     """
 
-    def __init__(self, n_models: int, data: np.ndarray,
-                 target_classes: int, learner):
+    def __init__(self, X: np.ndarray, y: np.ndarray,
+                 n_models: int, target_classes: int,
+                 learner, **fit_kwargs):
         """
         Creates a swarm of shadow models and trains them with a split
         of the synthetic data.
@@ -54,52 +54,53 @@ class ShadowModels:
         """
 
         self.n_models = n_models
-        if isinstance(data, pd.DataFrame):
-            self.data = data.values
-        else:
-            self.data = data
+        self.X = X
+        if self.X.ndim > 1:
+            self.X = self.X.reshape(self.X.shape[0],-1)  # flatten images or matrices inside 1rst axis
+
+        self.y = y
         self.target_classes = target_classes
-        self.splits = self._split_data(self.data, self.n_models)
+        self.splits = self._split_data(self.X, self.y, self.n_models, self.target_classes)
         self.learner = learner
         self.models = self._make_model_list(self.learner, self.n_models)
 
         # train models
-        self.results = self.train_predict_shadows()
+        self.results = self.train_predict_shadows(**fit_kwargs)
 
     @staticmethod
-    def _split_data(data, n_splits) -> List[np.ndarray]:
+    def _split_data(X: np.ndarray,
+                    y: np.ndarray,
+                    n_splits: int,
+                    n_classes: int) -> List[np.ndarray]:
         """
         Split manually into n datasets maintaining class proportions
-
-        Suposes class label is at data[:,-1]
         """
         # data = np.hstack((data[0], data[1].reshape(-1, 1)))
-        X = data
-        y = data[:, -1]
-        classes = np.unique(y)
-        n_classes = len(classes)
-
-        cls_partitions = []
+        # X = data
+        # y = data[:, -1]
+        classes = range(n_classes)
+        class_partitions = []
         # Split by class
-        for cl in classes:
+        for clss in classes:
 
-            X_cls = X[y == cl, :]
-            # y_cls = y[y == cl]
+            X_cls = X[y == clss]
+            y_cls = y[y == clss]
             batch_size = len(X_cls)//n_splits
             splits = []
             for i in range(n_splits):
                 split_X = X_cls[i*batch_size:(i+1)*batch_size, :]
-                # split_y = y_cls[i*batch_size:(i+1)*batch_size]
-                splits.append(split_X)
-            cls_partitions.append(splits)
+                split_y = y_cls[i*batch_size:(i+1)*batch_size]
+                splits.append((split_X, split_y))
+            class_partitions.append(splits)
 
         # -------------------
-        # consolidate splits
+        # consolidate splits into ndarrays
         # -------------------
+
         grouped = []
         for split in range(n_splits):
             parts = []
-            for part in cls_partitions:
+            for part in class_partitions:
                 parts.append(part[split])
             grouped.append(parts)
 
@@ -114,10 +115,15 @@ class ShadowModels:
         """
         Intances n shadow models, copies of the input parameter learner
         """
-        models = [clone(learner) for _ in range(n)]
+        if isinstance(learner, tf.keras.models.Model):
+            models = [copy(learner) for _ in range(n)]
+
+        elif isinstance(learner, BaseEstimator):
+            models = [clone(learner) for _ in range(n)]
+
         return models
 
-    def train_predict_shadows(self):
+    def train_predict_shadows(self, **fit_kwargs):
         """
         "in" : 1
         "out" : 0
@@ -131,7 +137,7 @@ class ShadowModels:
             X_train, X_test, y_train, y_test = train_test_split(X, y,
                                                                 test_size=0.5)
 
-            model.fit(X_train, y_train)
+            model.fit(X_train, y_train, **fit_kwargs)
             # data IN training
             y_train = y_train.reshape(-1, 1)
             predict_in = model.predict_proba(X_train)

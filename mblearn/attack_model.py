@@ -42,7 +42,7 @@ class AttackModels:
         self._fited = False
 
     @staticmethod
-    def _update_learner_params(learner, learner_params: Dict) -> None:
+    def _update_learner_params(learner, **learner_params) -> None:
         # safety check if dict is well formed
         for k in learner_params.keys():
             if not hasattr(learner, k):
@@ -50,10 +50,10 @@ class AttackModels:
                                      f' an attribute of {learner.__class__}')
         
         # update learner params
-        learner.__dict__.update(learner_params)
+        learner.__dict__.update(**learner_params)
         
 
-    def fit(self, shadow_data, learner_kwargs: dict) -> None:
+    def fit(self, shadow_data, **learner_kwargs) -> None:
         """
         Trains `attack_models` with `shadow_data`. Each model is trained with
         with a subset of the same class of `shadow_data`.
@@ -92,7 +92,7 @@ class AttackModels:
             y = membership_label[class_label == i]
 
             #update model params
-            self._update_learner_params(model, learner_kwargs)
+            self._update_learner_params(model, **learner_kwargs)
             # train model
             model.fit(X, y)
 
