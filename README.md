@@ -1,4 +1,5 @@
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/BielStela/membership_inference/master)
 
 # Membership Inference Attacks
 Python package to create adversarial agents for membership inference attacks against machine learning models using Scikit-learn learners.
