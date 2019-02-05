@@ -56,11 +56,13 @@ class ShadowModels:
         self.n_models = n_models
         self.X = X
         if self.X.ndim > 1:
-            self.X = self.X.reshape(self.X.shape[0],-1)  # flatten images or matrices inside 1rst axis
+            # flatten images or matrices inside 1rst axis
+            self.X = self.X.reshape(self.X.shape[0], -1)
 
         self.y = y
         self.target_classes = target_classes
-        self.splits = self._split_data(self.X, self.y, self.n_models, self.target_classes)
+        self.splits = self._split_data(
+            self.X, self.y, self.n_models, self.target_classes)
         self.learner = learner
         self.models = self._make_model_list(self.learner, self.n_models)
 
@@ -138,12 +140,12 @@ class ShadowModels:
                                                                 test_size=0.5)
 
             model.fit(X_train, y_train, **fit_kwargs)
-            # data IN training
+            # data IN training set labelet 1
             y_train = y_train.reshape(-1, 1)
             predict_in = model.predict_proba(X_train)
             res_in = np.hstack((predict_in, y_train, np.ones_like(y_train)))
 
-            # data OUT training
+            # data OUT of training set, labeled 0
             y_test = y_test.reshape(-1, 1)
             predict_out = model.predict_proba(X_test)
             res_out = np.hstack((predict_out, y_test, np.zeros_like(y_test)))
