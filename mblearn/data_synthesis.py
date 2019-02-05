@@ -5,8 +5,7 @@ import numpy as np
 from tqdm import tqdm_notebook
 
 
-def features_generator(n_features: int, dtype: str,
-                       rang: tuple = (0, 1)) -> np.ndarray:
+def features_generator(n_features: int, dtype: str, rang: tuple = (0, 1)) -> np.ndarray:
     """
     Creates a n features vector with uniform features
     sampled from a given range.
@@ -29,21 +28,19 @@ def features_generator(n_features: int, dtype: str,
         features vector
     """
     # D-fence params
-    if dtype not in ('bool', 'int', 'float'):
-        raise ValueError(
-            "Parameter `dtype` must be 'bool', 'int' or 'float'")
+    if dtype not in ("bool", "int", "float"):
+        raise ValueError("Parameter `dtype` must be 'bool', 'int' or 'float'")
 
-    if dtype == 'bool':
+    if dtype == "bool":
         x = np.random.randint(0, 2, n_features)
-    if dtype == 'int':
+    if dtype == "int":
         x = np.random.randint(rang[0], rang[1], n_features)
-    if dtype == 'float':
+    if dtype == "float":
         x = np.random.uniform(rang[0], rang[1], n_features)
     return x.reshape((1, -1))
 
 
-def feature_randomizer(x: np.ndarray, k: int,
-                       dtype: str, rang: tuple) -> np.ndarray:
+def feature_randomizer(x: np.ndarray, k: int, dtype: str, rang: tuple) -> np.ndarray:
     """
     Randomizes k features from feature vector x
 
@@ -76,8 +73,9 @@ def feature_randomizer(x: np.ndarray, k: int,
     return x
 
 
-def synthesize(target_model, fixed_cls: int,
-    k_max: int, dtype: str, n_features: int=None) -> np.ndarray:
+def synthesize(
+    target_model, fixed_cls: int, k_max: int, dtype: str, n_features: int = None
+) -> np.ndarray:
     """
     Generates synthetic records that are classified
     by the target model with high confidence.
@@ -112,8 +110,8 @@ def synthesize(target_model, fixed_cls: int,
         This may be becaus number of iters exceded
     """
 
-    if not hasattr(target_model, 'predict_proba'):
-        raise AttributeError('target_model must have predict_proba() method')
+    if not hasattr(target_model, "predict_proba"):
+        raise AttributeError("target_model must have predict_proba() method")
 
     if not hasattr(target_model, "n_features_") and n_features is None:
         raise ValueError("please specify the number of features in `n_features`")
@@ -142,7 +140,7 @@ def synthesize(target_model, fixed_cls: int,
         else:
             n_rejects += 1
             if n_rejects > rej_max:
-                k = max(k_min, int(np.ceil(k/2)))
+                k = max(k_min, int(np.ceil(k / 2)))
                 n_rejects = 0
 
         x = feature_randomizer(x_new, k, dtype=dtype, rang=(0, 1))

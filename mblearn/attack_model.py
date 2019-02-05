@@ -9,6 +9,7 @@ from sklearn.model_selection import train_test_split, StratifiedShuffleSplit
 from sklearn.base import clone
 
 import warnings
+
 warnings.filterwarnings("ignore")
 
 
@@ -36,8 +37,7 @@ class AttackModels:
         self.target_classes = target_classes
         self.attack_learner = attack_learner
         # 1 model for each class
-        self.attack_models = [clone(self.attack_learner)
-                              for _ in range(target_classes)]
+        self.attack_models = [clone(self.attack_learner) for _ in range(target_classes)]
 
         self._fited = False
 
@@ -46,8 +46,9 @@ class AttackModels:
         # safety check if dict is well formed
         for k in learner_params.keys():
             if not hasattr(learner, k):
-                raise AttributeError(f'Learner parameter {k} is not'
-                                     f' an attribute of {learner.__class__}')
+                raise AttributeError(
+                    f"Learner parameter {k} is not an attribute of {learner.__class__}"
+                )
 
         # update learner params
         learner.__dict__.update(**learner_params)
@@ -111,7 +112,7 @@ class AttackModels:
             estimated class of the data record used to get `X`
         """
         if not self._fited:
-            print('Must run `fit` method first')
+            print("Must run `fit` method first")
             return
 
         if not batch:
