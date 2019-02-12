@@ -13,6 +13,7 @@ try:
     import tensorflow as tf
 except (ModuleNotFoundError, ImportError):
     import warnings
+
     warnings.warn("Tensorflow is not installed")
 
 
@@ -23,14 +24,16 @@ class ShadowModels:
 
     Parameters
     ----------
+    X: ndarray or DataFrame
+
+    y: ndarray or str
+        if X it's a DataFrame then y must be the target column name,
+        otherwise 
 
     n_models: int
         number of shadow models to build. Higher number returns
         better results but is limited by the number of records 
         in the input data.
-
-    data: np.ndarray
-        input data with the target label as last column
 
     target_classes: int
         number of classes of the target model or lenght of the
@@ -55,7 +58,7 @@ class ShadowModels:
         target_classes: int,
         learner,
         **fit_kwargs,
-    ):
+    ) -> None:
 
         self.n_models = n_models
         self.X = X
@@ -87,14 +90,14 @@ class ShadowModels:
         # Split by class
         for clss in classes:
 
-            X_cls = X[y == clss]
-            y_cls = y[y == clss]
-            batch_size = len(X_cls) // n_splits
+            X_clss = X[y == clss]
+            y_clss = y[y == clss]
+            batch_size = len(X_clss) // n_splits
             splits = []
             for i in range(n_splits):
-                split_X = X_cls[i * batch_size: (i + 1) * batch_size, :]
-                split_y = y_cls[i * batch_size: (i + 1) * batch_size]
-                splits.append((split_X, split_y))
+                split_X = X_clss[i * batch_size : (i + 1) * batch_size, :]
+                split_y = y_clss[i * batch_size : (i + 1) * batch_size]
+                splits.append(np.hstack((split_X, split_y.reshape(-1, 1))))
             class_partitions.append(splits)
 
         # -------------------
@@ -119,10 +122,14 @@ class ShadowModels:
         """
         Intances n shadow models, copies of the input parameter learner
         """
-        if isinstance(learner, tf.keras.models.Model):
-            models = [copy(learner) for _ in range(n)]
+        try:
+            if isinstance(learner, tf.keras.models.Model):
+                models = [copy(learner) for _ in range(n)]
+        except NameError:
+            print("using sklearn shadow models")
+            pass
 
-        elif isinstance(learner, BaseEstimator):
+        if isinstance(learner, BaseEstimator):
             models = [clone(learner) for _ in range(n)]
 
         return models
@@ -138,8 +145,7 @@ class ShadowModels:
         for model, data_subset in tqdm_notebook(zip(self.models, self._splits)):
             X = data_subset[:, :-1]
             y = data_subset[:, -1]
-            X_train, X_test, y_train, y_test = train_test_split(
-                X, y, test_size=0.5)
+            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.5)
 
             model.fit(X_train, y_train, **fit_kwargs)
             # data IN training set labelet 1
