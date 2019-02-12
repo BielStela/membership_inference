@@ -28,11 +28,11 @@ class ShadowModels:
 
     y: ndarray or str
         if X it's a DataFrame then y must be the target column name,
-        otherwise 
+        otherwise
 
     n_models: int
         number of shadow models to build. Higher number returns
-        better results but is limited by the number of records 
+        better results but is limited by the number of records
         in the input data.
 
     target_classes: int
@@ -40,8 +40,8 @@ class ShadowModels:
         prediction array of the target model.
 
     learner: learner? #fix type
-        learner to use as shadow model. It must be as similar as 
-        possible to the target model. It must have `predict_proba` 
+        learner to use as shadow model. It must be as similar as
+        possible to the target model. It must have `predict_proba`
         method. Now only sklearn learners are implemented.
 
     Returns
@@ -50,25 +50,26 @@ class ShadowModels:
     ShadowModels object
     """
 
-    def __init__(
-        self,
-        X: np.ndarray,
-        y: np.ndarray,
-        n_models: int,
-        target_classes: int,
-        learner,
-        **fit_kwargs,
-    ) -> None:
+    stuff = List[Tuple[int, int]]
+
+    def __init__(self,
+                 X: np.ndarray,
+                 y: np.ndarray,
+                 n_models: int,
+                 target_classes: int,
+                 learner,
+                 **fit_kwargs,
+                 ) -> None:
 
         self.n_models = n_models
         self.X = X
         if self.X.ndim > 1:
             # flatten images or matrices inside 1rst axis
             self.X = self.X.reshape(self.X.shape[0], -1)
-
         self.y = y
         self.target_classes = target_classes
-        self._splits = self._split_data(self.X, self.y, self.n_models, self.target_classes)
+        self._splits = self._split_data(
+            self.X, self.y, self.n_models, self.target_classes)
         self.learner = learner
         self.models = self._make_model_list(self.learner, self.n_models)
 
@@ -76,15 +77,31 @@ class ShadowModels:
         self.results = self.train_predict_shadows(**fit_kwargs)
 
     @staticmethod
-    def _split_data(
-        X: np.ndarray, y: np.ndarray, n_splits: int, n_classes: int
-    ) -> List[np.ndarray]:
+    def _split_data_pd(X: np.ndarray, y: np.ndarray, n_splits: int) -> List[pd.DataFrame]:
+        df = pd.DataFrame(X)
+        df['label'] = y
+
+        groups = [group for _, group in df.groupby('label')]
+
+        splits = []
+        for df_by_label in groups:
+            splits.append(np.array_split(df_by_label, n_splits))
+
+        tables = []
+        for data_split in zip(*splits):
+            tables.append(pd.concat(data_split))
+
+        return tables
+
+    @staticmethod
+    def _split_data(X: np.ndarray,
+                    y: np.ndarray,
+                    n_splits: int,
+                    n_classes: int
+                    ) -> List[np.ndarray]:
         """
         Split manually into n datasets maintaining class proportions
         """
-        # data = np.hstack((data[0], data[1].reshape(-1, 1)))
-        # X = data
-        # y = data[:, -1]
         classes = range(n_classes)
         class_partitions = []
         # Split by class
@@ -95,8 +112,8 @@ class ShadowModels:
             batch_size = len(X_clss) // n_splits
             splits = []
             for i in range(n_splits):
-                split_X = X_clss[i * batch_size : (i + 1) * batch_size, :]
-                split_y = y_clss[i * batch_size : (i + 1) * batch_size]
+                split_X = X_clss[i * batch_size: (i + 1) * batch_size, :]
+                split_y = y_clss[i * batch_size: (i + 1) * batch_size]
                 splits.append(np.hstack((split_X, split_y.reshape(-1, 1))))
             class_partitions.append(splits)
 
@@ -145,7 +162,8 @@ class ShadowModels:
         for model, data_subset in tqdm_notebook(zip(self.models, self._splits)):
             X = data_subset[:, :-1]
             y = data_subset[:, -1]
-            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.5)
+            X_train, X_test, y_train, y_test = train_test_split(
+                X, y, test_size=0.5)
 
             model.fit(X_train, y_train, **fit_kwargs)
             # data IN training set labelet 1
